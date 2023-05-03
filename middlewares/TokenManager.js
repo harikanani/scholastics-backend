@@ -1,11 +1,12 @@
 const jwt = require("jsonwebtoken");
 const jwtSecret =
+	process.env.JWT_SECRET ||
 	"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890";
 
 module.exports = {
 	generateToken: function (user) {
 		return jwt.sign(user, jwtSecret, {
-			expiresIn: "1h",
+			expiresIn: "12h",
 		});
 	},
 

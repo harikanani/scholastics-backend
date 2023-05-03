@@ -21,11 +21,12 @@ const studentSchema = new Schema(
 			required: true,
 			unique: true,
 		},
-		subjects: {
-			type: Array,
-			// ! mark required: true
-			required: false,
-		},
+		classrooms: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "classroomModel",
+			},
+		],
 	},
 	{ timestamps: true, versionKey: false, collection: "student" },
 );

@@ -2,6 +2,8 @@ const express = require("express");
 const teacherController = require("../controllers/teacherController");
 const TokenManager = require("../middlewares/TokenManager");
 const verify = require("../middlewares/verify");
+const upload = require("../middlewares/upload");
+const services = require("../services");
 
 const teacherRouter = express.Router();
 
@@ -12,6 +14,39 @@ teacherRouter.post(
 	TokenManager.verifyToken,
 	verify.isTeacher,
 	teacherController.addStudent,
+);
+
+// create classroom
+teacherRouter.post(
+	"/createClassroom",
+	TokenManager.verifyToken,
+	verify.isTeacher,
+	teacherController.createClassroom,
+);
+
+// upload Assignment File
+teacherRouter.post(
+	"/assignment/upload",
+	TokenManager.verifyToken,
+	verify.isTeacher,
+	upload.single("assignment"),
+	services.uploadAssignmentFile,
+);
+
+// create Assignments
+teacherRouter.post(
+	"/createAssignment",
+	TokenManager.verifyToken,
+	verify.isTeacher,
+	teacherController.createAssignment,
+);
+
+// Grade Assignment
+teacherRouter.post(
+	"/gradeAssignment",
+	TokenManager.verifyToken,
+	verify.isTeacher,
+	teacherController.gradeAndFeedbackAssignment,
 );
 
 module.exports = teacherRouter;

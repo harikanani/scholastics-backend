@@ -1,6 +1,7 @@
 const adminModel = require("../models/adminModel");
 const teacherModel = require("../models/teacherModel");
 const jwt = require("jsonwebtoken");
+const { generateToken } = require("../middlewares/TokenManager");
 
 const { createPassword, sendEmail } = require("../services");
 
@@ -34,13 +35,11 @@ module.exports = {
 		let admin = await adminModel.findOne({ email, password });
 
 		if (admin) {
-			let token = jwt.sign(
-				{ admin_id: admin._id, email: admin.email },
-				"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890",
-				{
-					expiresIn: "1h",
-				},
-			);
+			let token = generateToken({
+				admin_id: admin._id,
+				email: admin.email,
+			});
+
 			res.status(200).json({
 				message: "Admin logged in successfully",
 				data: {
@@ -76,6 +75,7 @@ module.exports = {
 		}).save();
 
 		if (teacher) {
+			console.log("password: ", password);
 			await sendEmail(
 				email,
 				`Welcome to Scholastics ${name}, your email is ${email} and password is ${password}`,

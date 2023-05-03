@@ -16,10 +16,12 @@ const teacherSchema = new Schema(
 			type: String,
 			required: true,
 		},
-		subjects: {
-			type: Array,
-			required: false,
-		},
+		classrooms: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "classroomModel",
+			},
+		],
 	},
 	{ timestamps: true, versionKey: false, collection: "teacher" },
 );
