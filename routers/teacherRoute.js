@@ -10,6 +10,13 @@ const teacherRouter = express.Router();
 teacherRouter.post("/login", teacherController.teacherLogin);
 
 teacherRouter.post(
+	"/video-call",
+	TokenManager.verifyToken,
+	verify.isTeacher,
+	teacherController.createVideoCall,
+);
+
+teacherRouter.post(
 	"/addStudent",
 	TokenManager.verifyToken,
 	verify.isTeacher,

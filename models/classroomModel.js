@@ -17,6 +17,10 @@ const ClassRoomSchema = new Schema(
 			ref: "teacherModel",
 			required: false,
 		},
+		videoRoomId: {
+			type: String,
+			required: false,
+		},
 		students: [
 			{
 				type: Schema.Types.ObjectId,

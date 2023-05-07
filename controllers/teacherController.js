@@ -6,8 +6,70 @@ const jwt = require("jsonwebtoken");
 const TokenManager = require("../middlewares/TokenManager");
 const AssignmentModel = require("../models/assignmentModel");
 const mongoose = require("mongoose");
+const { AccessToken } = require("twilio").jwt;
+const { VideoGrant } = AccessToken;
+const twilio = require("twilio");
+
+// Set up Twilio credentials
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const twilioClient = twilio(accountSid, authToken);
+const apiKey = process.env.TWILIO_API_KEY;
+const apiSecret = process.env.TWILIO_API_SECRET;
 
 module.exports = {
+	createVideoCall: async (req, res) => {
+		try {
+			const { subject_code, roomName } = req.body;
+
+			if (!subject_code || !roomName) {
+				return res.status(400).json({
+					message: "Please provide all data: clasroomId and roomName",
+				});
+			}
+
+			// Create a new room with Twilio API
+			const room = await twilioClient.video.rooms.create({
+				uniqueName: roomName,
+			});
+
+			// Save the room ID to the corresponding classroom document in the database
+			const classroom = await classroomModel.find({ subject_code });
+			classroom.videoRoomId = room.sid;
+			await classroom.save();
+
+			res.status(201).json({ roomId: room.sid });
+		} catch (error) {
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
+
+	generateAccessToken: async (req, res) => {
+		try {
+			let { identity, room } = req.body;
+			// Generate an access token with video grant
+			const videoGrant = new VideoGrant();
+			const token = new AccessToken(accountSid, apiKey, apiSecret);
+			token.addGrant(videoGrant);
+			token.identity = identity;
+			token.room = room;
+			const accessToken = token.toJwt();
+
+			return res.status(200).json({
+				message: "operation success",
+				data: { accessToken },
+			});
+		} catch (error) {
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
+
 	teacherLogin: async function (req, res) {
 		try {
 			let { email, password } = req.body;
