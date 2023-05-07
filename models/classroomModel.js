@@ -32,7 +32,7 @@ const ClassRoomSchema = new Schema(
 		feed: [
 			{
 				user: {
-					type: Schema.Types.ObjectId,
+					type: String,
 					required: true,
 				},
 				message: {
@@ -42,6 +42,10 @@ const ClassRoomSchema = new Schema(
 				createdAt: {
 					type: Date,
 					default: Date.now,
+				},
+				fileUrl: {
+					type: String,
+					required: false,
 				},
 			},
 		],

@@ -53,4 +53,12 @@ studentRouter.post(
 	verify.isStudent,
 	studentController.getStudentProfile,
 );
+
+// Assignment Lists
+studentRouter.post(
+	"/assignments",
+	TokenManager.verifyToken,
+	verify.isStudent,
+	studentController.getAssignments,
+);
 module.exports = studentRouter;

@@ -164,9 +164,10 @@ module.exports = {
 			});
 
 			let assignments = classroom.assignments.map((assignment) => {
+				console.log({ assignment });
 				const submission = assignment.submissions.find(
 					(submission) =>
-						submission.studentId.toString() ===
+						submission.studentId._id.toString() ===
 						studentId.toString(),
 				);
 
@@ -187,6 +188,7 @@ module.exports = {
 								fileUrl: submission.fileUrl,
 								feedback: submission.feedback,
 								marksObtained: submission.marksObtained,
+								isSubmitted: true,
 						  }
 						: { isSubmitted: false },
 				};
@@ -204,6 +206,7 @@ module.exports = {
 				},
 			});
 		} catch (error) {
+			console.log(error);
 			return res.status(500).json({
 				message: "Internal Server Error!",
 				error: error.message,
@@ -310,6 +313,62 @@ module.exports = {
 					message: "Student not found!!!",
 				});
 			}
+		} catch (error) {
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
+
+	getAssignments: async (req, res) => {
+		try {
+			// Find the student by ID
+			const student = await studentModel.findById(req.user.student_id);
+			if (!student) {
+				return res.status(404).json({ error: "Student not found" });
+			}
+
+			// Find all the classrooms the student is enrolled in
+			const classrooms = await classroomModel.find({
+				students: new mongoose.Types.ObjectId(student._id),
+			});
+
+			// Find all the assignments in those classrooms
+			const allAssignments = await AssignmentModel.find({
+				classrrom_id: {
+					$in: classrooms.map(
+						(c) => new mongoose.Types.ObjectId(c._id),
+					),
+				},
+			}).populate("classrrom_id");
+
+			// Divide the assignments into two arrays, submitted and not submitted
+			const submittedAssignments = [];
+			const notSubmittedAssignments = [];
+
+			allAssignments.forEach((assignment) => {
+				// Check if the student has submitted the assignment
+				const submission = assignment.submissions.find(
+					(s) => s.studentId.toString() === student._id.toString(),
+				);
+
+				if (submission) {
+					submittedAssignments.push({
+						...assignment.toObject(),
+						submission: submission,
+					});
+				} else {
+					notSubmittedAssignments.push(assignment);
+				}
+			});
+
+			return res.json({
+				submittedAssignments,
+				notSubmittedAssignments,
+				allAssignments:
+					notSubmittedAssignments.concat(submittedAssignments),
+			});
 		} catch (error) {
 			return res.status(500).json({
 				message: "Internal Server Error!",

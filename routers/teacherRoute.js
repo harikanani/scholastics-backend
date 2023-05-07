@@ -57,4 +57,20 @@ teacherRouter.post(
 	teacherController.getTeacherDashboard,
 );
 
+// Teacher Post in Feed Section
+teacherRouter.post(
+	"/post",
+	TokenManager.verifyToken,
+	verify.isTeacher,
+	teacherController.postFeed,
+);
+
+// retrive all post from feed section
+teacherRouter.post(
+	"/feed",
+	TokenManager.verifyToken,
+	verify.isTeacher,
+	teacherController.getFeed,
+);
+
 module.exports = teacherRouter;

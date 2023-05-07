@@ -251,4 +251,80 @@ module.exports = {
 			});
 		}
 	},
+
+	postFeed: async (req, res) => {
+		try {
+			let { classroomId, message, fileUrl } = req.body;
+
+			if (!classroomId || !message) {
+				return res.status(400).json({
+					message: "Please provide all details",
+				});
+			}
+
+			// Get Teacher Details
+			let teacherDetails = await teacherModel
+				.findOne({
+					_id: new mongoose.Types.ObjectId(req.user.teacher_id),
+				})
+				.lean();
+
+			// check if teacher exists or not
+			if (!teacherDetails) {
+				return res.status(400).json({
+					message: "Teacher not found!",
+				});
+			}
+
+			// Post Feed in classroom
+			let classroom = await classroomModel.findOne({
+				_id: new mongoose.Types.ObjectId(classroomId),
+			});
+
+			if (!classroom) {
+				return res.status(400).json({
+					message: "Classroom not found!",
+				});
+			}
+
+			// add feed to classroom: classroom.feeds append
+			let newFeed = {
+				user: teacherDetails.name,
+				message,
+				fileUrl,
+			};
+
+			classroom.feed.push(newFeed);
+			await classroom.save();
+
+			return res.status(200).json({
+				message: "Feed Posted Successfully",
+				data: classroom,
+			});
+		} catch (error) {
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
+
+	getFeed: async (req, res) => {
+		// ! model reference for student and teacher in user in feed
+		try {
+			let { classroomId } = req.body;
+			const classroom = await classroomModel.findById(classroomId);
+
+			return res.status(200).json({
+				message: "Operation Successful",
+				data: classroom.feed,
+			});
+		} catch (error) {
+			console.log(error);
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
 };
