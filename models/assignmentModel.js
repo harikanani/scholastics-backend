@@ -51,6 +51,6 @@ const AssignmentSchema = new Schema(
 	{ collection: "assignments", versionKey: false, timestamps: true },
 );
 
-const AssignmentModel = mongoose.model("Assignments", AssignmentSchema);
+const AssignmentModel = mongoose.model("AssignmentModel", AssignmentSchema);
 
 module.exports = AssignmentModel;

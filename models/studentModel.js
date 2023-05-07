@@ -31,6 +31,6 @@ const studentSchema = new Schema(
 	{ timestamps: true, versionKey: false, collection: "student" },
 );
 
-const studentModel = mongoose.model("student", studentSchema);
+const studentModel = mongoose.model("studentModel", studentSchema);
 
 module.exports = studentModel;

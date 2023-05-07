@@ -1,6 +1,7 @@
 const studentModel = require("../models/studentModel");
 const TokenManager = require("../middlewares/TokenManager");
 const classroomModel = require("../models/classroomModel");
+const teacherModel = require("../models/teacherModel");
 const mongoose = require("mongoose");
 const AssignmentModel = require("../models/assignmentModel");
 module.exports = {
@@ -114,6 +115,10 @@ module.exports = {
 			classroom.students.push(student._id);
 			await classroom.save();
 
+			// add classroom to student
+			student.classrooms.push(classroom._id);
+			await student.save();
+
 			return res.status(200).json({
 				message: "Student joined classroom successfully",
 				data: classroom,
@@ -132,43 +137,70 @@ module.exports = {
 		const classroomId = req.params.id;
 
 		try {
-			const classroom = await classroomModel.findById(classroomId);
+			const classroom = await classroomModel
+				.findById(classroomId)
+				.populate("teacherId", "name email")
+				.populate("students", "name email")
+				.populate({
+					path: "assignments",
+					select: "-__v",
+					populate: {
+						path: "submissions.studentId",
+						select: "name email",
+					},
+				});
+
 			if (!classroom) {
-				return res.status(404).json({ message: "Classroom not found" });
+				return null;
 			}
 
-			// Get the classroom's feed
-			const feed = classroom.feed;
+			const teacherDetails = {
+				name: classroom.teacherId.name,
+				email: classroom.teacherId.email,
+			};
 
-			// Get the classroom's assignments
-			const assignments = await AssignmentModel.find({
-				classrrom_id: classroomId,
+			const students = classroom.students.map((student) => {
+				return { name: student.name, email: student.email };
 			});
 
-			// Get the submitted assignments of the student
-			const submittedAssignments = [];
-			for (let i = 0; i < assignments.length; i++) {
-				const submission = assignments[i].submissions.find(
-					(s) => s.studentId.toString() === studentId,
+			let assignments = classroom.assignments.map((assignment) => {
+				const submission = assignment.submissions.find(
+					(submission) =>
+						submission.studentId.toString() ===
+						studentId.toString(),
 				);
-				if (submission) {
-					submittedAssignments.push({
-						assignmentId: assignments[i]._id,
-						submissionDate: submission.submissionDate,
-						fileUrl: submission.fileUrl,
-						mark: submission.mark,
-						feedback: submission.feedback,
-					});
-				}
-			}
+
+				console.log(submission);
+				return {
+					name: assignment.name,
+					description: assignment.description,
+					classroom_details: {
+						classroom_name: classroom.subject_name,
+						classroom_subject: classroom.subject_code,
+					},
+					dueDate: assignment.dueDate,
+					fileUrl: assignment.fileUrl,
+					marks: assignment.marks,
+					submission: submission
+						? {
+								submissionDate: submission.submissionDate,
+								fileUrl: submission.fileUrl,
+								feedback: submission.feedback,
+								marksObtained: submission.marksObtained,
+						  }
+						: { isSubmitted: false },
+				};
+			});
 
 			return res.status(200).json({
-				message: "Classroom details retrieved successfully",
+				message: "operation successful",
 				data: {
-					classroom,
-					feed,
-					assignments,
-					submittedAssignments,
+					_id: classroom._id,
+					subject_name: classroom.subject_name,
+					subject_code: classroom.subject_code,
+					teacher_details: teacherDetails,
+					students: students,
+					assignments: assignments,
 				},
 			});
 		} catch (error) {

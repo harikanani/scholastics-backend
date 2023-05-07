@@ -3,7 +3,7 @@ const Mailgun = require("mailgun.js");
 const mailgun = new Mailgun(formData);
 
 const API_KEY = process.env.MAILGUN_API_KEY;
-const DOMAIN = "onelock.tel";
+const DOMAIN = "scholastic.abhigoyani.me";
 
 const client = mailgun.client({ username: "api", key: API_KEY });
 
@@ -26,7 +26,7 @@ module.exports = {
 
 	sendEmail: function (to, text) {
 		const messageData = {
-			from: "Excited User <me@onelock.tel>",
+			from: "Excited User <credentials@scholastic.abhigoyani.me>",
 			to: to,
 			subject: "Singup to Scholastics",
 			text: text,
