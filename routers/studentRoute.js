@@ -40,4 +40,17 @@ studentRouter.post(
 	studentController.getClassroomDetails,
 );
 
+studentRouter.post(
+	"/dashboard",
+	TokenManager.verifyToken,
+	verify.isStudent,
+	studentController.getStudentDashboard,
+);
+
+studentRouter.post(
+	"/profile",
+	TokenManager.verifyToken,
+	verify.isStudent,
+	studentController.getStudentProfile,
+);
 module.exports = studentRouter;

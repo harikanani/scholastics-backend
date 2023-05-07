@@ -5,6 +5,7 @@ const { createPassword } = require("../services");
 const jwt = require("jsonwebtoken");
 const TokenManager = require("../middlewares/TokenManager");
 const AssignmentModel = require("../models/assignmentModel");
+const mongoose = require("mongoose");
 
 module.exports = {
 	teacherLogin: async function (req, res) {
@@ -205,6 +206,43 @@ module.exports = {
 			return res.status(200).json({
 				message: "Marks and feedback assigned successfully",
 				data: assignment,
+			});
+		} catch (error) {
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
+
+	// Teacher Dashboard
+	getTeacherDashboard: async (req, res) => {
+		try {
+			// Get Teacher Details
+			let teacherDetails = await teacherModel
+				.findOne({
+					_id: new mongoose.Types.ObjectId(req.user.teacher_id),
+				})
+				.lean();
+
+			// check if teacher exists or not
+			if (!teacherDetails) {
+				return res.status(400).json({
+					message: "Teacher not found!",
+				});
+			}
+
+			// delete credentials
+			delete teacherDetails.password;
+
+			// Get Classrooms list of which teacher is part of
+			let classrooms = await classroomModel.find({
+				teacherId: new mongoose.Types.ObjectId(req.user.teacher_id),
+			});
+
+			return res.status(200).json({
+				message: "Operation Successful",
+				data: { teacherDetails, classrooms },
 			});
 		} catch (error) {
 			return res.status(500).json({

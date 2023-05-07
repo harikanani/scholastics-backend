@@ -49,4 +49,12 @@ teacherRouter.post(
 	teacherController.gradeAndFeedbackAssignment,
 );
 
+// Teacher Dashboard
+teacherRouter.post(
+	"/dashboard",
+	TokenManager.verifyToken,
+	verify.isTeacher,
+	teacherController.getTeacherDashboard,
+);
+
 module.exports = teacherRouter;

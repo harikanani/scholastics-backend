@@ -72,16 +72,16 @@ module.exports = {
 	// join classroom by students using _id of classroom
 	joinClassroom: async (req, res) => {
 		try {
-			let classroom_id = req.params.id;
+			let subject_code = req.params.id;
 
-			if (!classroom_id) {
+			if (!subject_code) {
 				return res.status(400).json({
 					message: "Classroom id is required",
 				});
 			}
 
 			let classroom = await classroomModel.findOne({
-				_id: new mongoose.Types.ObjectId(classroom_id),
+				subject_code: subject_code,
 			});
 
 			if (!classroom) {
@@ -252,6 +252,64 @@ module.exports = {
 				message: "Assignment submitted successfully",
 				data: assignment,
 			});
+		} catch (error) {
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
+
+	getStudentDashboard: async (req, res) => {
+		try {
+			// Get Student Details
+			let studentDetails = await studentModel
+				.findOne({
+					_id: new mongoose.Types.ObjectId(req.user.student_id),
+				})
+				.lean();
+			// .populate("classrooms");
+
+			if (!studentDetails) {
+				return res.status(400).json({
+					message: "Student not found!",
+				});
+			}
+
+			// delete credentails
+			// studentDetails.password = null;
+			delete studentDetails["password"];
+
+			// Get Student Classroom lists
+			let classrooms = await classroomModel.find({
+				students: new mongoose.Types.ObjectId(req.user.student_id),
+			});
+
+			return res.status(200).json({
+				message: "Operation Successful",
+				data: { studentDetails, classrooms },
+			});
+		} catch (error) {
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
+
+	getStudentProfile: async (req, res) => {
+		try {
+			let studentProfile = await studentModel
+				.findOne({
+					_id: new mongoose.Types.ObjectId(req.user.student_id),
+				})
+				.lean();
+
+			if (!studentProfile) {
+				return res.status(400).json({
+					message: "Student not found!!!",
+				});
+			}
 		} catch (error) {
 			return res.status(500).json({
 				message: "Internal Server Error!",
