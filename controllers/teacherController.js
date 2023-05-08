@@ -230,13 +230,64 @@ module.exports = {
 		}
 	},
 
+	getAssignments: async (req, res) => {
+		try {
+			let { classroomId } = req.body;
+
+			// let assignments = await AssignmentModel.find({
+			// 	classrrom_id: new mongoose.Types.ObjectId(classroomId)
+			// });
+
+			const assignments = await AssignmentModel.find({
+				classrrom_id: new mongoose.Types.ObjectId(classroomId),
+			});
+			// .populate("submissions.studentId");
+			const result = [];
+			for (const assignment of assignments) {
+				const submissions = [];
+				for (const submission of assignment.submissions) {
+					const student = await studentModel.findById(
+						submission.studentId,
+					);
+					submissions.push({
+						studentName: student.name,
+						studentId: submission.studentId,
+						// studentId: submission.studentId,
+						submissionDate: submission.submissionDate,
+						fileUrl: submission.fileUrl,
+						feedback: submission.feedback,
+						marksObtained: submission.marksObtained,
+					});
+				}
+				result.push({
+					name: assignment.name,
+					description: assignment.description,
+					dueDate: assignment.dueDate,
+					fileUrl: assignment.fileUrl,
+					marks: assignment.marks,
+					submissions: submissions,
+				});
+			}
+
+			return res.status(200).json({
+				message: "Operation success",
+				data: result,
+			});
+		} catch (error) {
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
+
 	// mark Assignment
 	gradeAndFeedbackAssignment: async (req, res) => {
 		try {
 			const { assignmentId, studentId, marksObtained, feedback } =
 				req.body;
 
-			if (!assignmentId || !studentId || !marksObtained || !feedback) {
+			if (!assignmentId || !studentId || !marksObtained) {
 				return res.status(400).json({
 					message: "Please provide all details",
 				});

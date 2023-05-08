@@ -48,6 +48,14 @@ teacherRouter.post(
 	teacherController.createAssignment,
 );
 
+// Get List of Assignments of classroom
+teacherRouter.post(
+	"/assignments",
+	TokenManager.verifyToken,
+	verify.isTeacher,
+	teacherController.getAssignments,
+);
+
 // Grade Assignment
 teacherRouter.post(
 	"/gradeAssignment",
