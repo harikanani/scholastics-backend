@@ -88,4 +88,11 @@ teacherRouter.post(
 	teacherController.getFeed,
 );
 
+// retrive all the students in classroom
+teacherRouter.post(
+	"/students",
+	TokenManager.verifyToken,
+	teacherController.getStudents,
+);
+
 module.exports = teacherRouter;

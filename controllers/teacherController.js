@@ -1,7 +1,7 @@
 const studentModel = require("../models/studentModel");
 const teacherModel = require("../models/teacherModel");
 const classroomModel = require("../models/classroomModel");
-const { createPassword } = require("../services");
+const { createPassword, sendEmail } = require("../services");
 const jwt = require("jsonwebtoken");
 const TokenManager = require("../middlewares/TokenManager");
 const AssignmentModel = require("../models/assignmentModel");
@@ -119,6 +119,11 @@ module.exports = {
 				password,
 				enrollment_number: enrollmentNo,
 			}).save();
+
+			await sendEmail(
+				email,
+				`Welcome to Scholastics ${name}, your email is ${email} and password is ${password}`,
+			);
 			return res.status(200).json({
 				message: "Student added successfully",
 				data: student,
@@ -196,7 +201,9 @@ module.exports = {
 			}
 
 			// Check if the classroom exists
-			const classroom = await classroomModel.findById(classroomId);
+			const classroom = await classroomModel.findOne({
+				subject_code: classroomId,
+			});
 			if (!classroom) {
 				return res.status(404).json({ message: "Classroom not found" });
 			}
@@ -349,9 +356,11 @@ module.exports = {
 			delete teacherDetails.password;
 
 			// Get Classrooms list of which teacher is part of
-			let classrooms = await classroomModel.find({
-				teacherId: new mongoose.Types.ObjectId(req.user.teacher_id),
-			});
+			let classrooms = await classroomModel
+				.find({
+					teacherId: new mongoose.Types.ObjectId(req.user.teacher_id),
+				})
+				.populate("students", "name email");
 
 			return res.status(200).json({
 				message: "Operation Successful",
@@ -434,6 +443,32 @@ module.exports = {
 			});
 		} catch (error) {
 			console.log(error);
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
+
+	getStudents: async (req, res) => {
+		try {
+			let { classroomId } = req.body;
+
+			if (!classroomId) {
+				return res.status(400).json({
+					message: "Please provide all details",
+				});
+			}
+
+			const classroom = await classroomModel
+				.findById(classroomId)
+				.populate("students", "name email");
+
+			return res.status(200).json({
+				message: "Operation Successful",
+				data: classroom.students,
+			});
+		} catch (error) {
 			return res.status(500).json({
 				message: "Internal Server Error!",
 				error: error.message,
