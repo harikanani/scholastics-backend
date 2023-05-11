@@ -31,6 +31,13 @@ teacherRouter.post(
 	teacherController.createClassroom,
 );
 
+teacherRouter.post(
+	"/classroom/:id",
+	TokenManager.verifyToken,
+	verify.isTeacher,
+	teacherController.getClassroomDetails,
+);
+
 // upload Assignment File
 teacherRouter.post(
 	"/assignment/upload",
@@ -93,6 +100,14 @@ teacherRouter.post(
 	"/students",
 	TokenManager.verifyToken,
 	teacherController.getStudents,
+);
+
+// retribe list of all the classrooms of teacher
+teacherRouter.post(
+	"/classrooms",
+	TokenManager.verifyToken,
+	verify.isTeacher,
+	teacherController.getClassrooms,
 );
 
 module.exports = teacherRouter;

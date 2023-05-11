@@ -24,7 +24,8 @@ module.exports = {
 
 			if (!subject_code || !roomName) {
 				return res.status(400).json({
-					message: "Please provide all data: clasroomId and roomName",
+					message:
+						"Please provide all data: classroomId and roomName",
 				});
 			}
 
@@ -469,6 +470,69 @@ module.exports = {
 				data: classroom.students,
 			});
 		} catch (error) {
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
+
+	getClassrooms: async (req, res) => {
+		try {
+			const classrooms = await classroomModel
+				.find({
+					teacherId: new mongoose.Types.ObjectId(req.user.teacher_id),
+				})
+				// get only subject_name, subject_code
+				.select("subject_name subject_code");
+			// .populate("students", "name email");
+
+			return res.status(200).json({
+				message: "Operation Successful",
+				data: classrooms,
+			});
+		} catch (error) {
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
+
+	getClassroomDetails: async (req, res) => {
+		const classroomId = req.params.id;
+
+		try {
+			const classroom = await classroomModel
+				.findById(classroomId)
+				.populate("teacherId", "name email")
+				.populate("students", "name email");
+
+			if (!classroom) {
+				return null;
+			}
+
+			const teacherDetails = {
+				name: classroom.teacherId.name,
+				email: classroom.teacherId.email,
+			};
+
+			const students = classroom.students.map((student) => {
+				return { name: student.name, email: student.email };
+			});
+
+			return res.status(200).json({
+				message: "operation successful",
+				data: {
+					_id: classroom._id,
+					subject_name: classroom.subject_name,
+					subject_code: classroom.subject_code,
+					teacher_details: teacherDetails,
+					students: students,
+				},
+			});
+		} catch (error) {
+			console.log(error);
 			return res.status(500).json({
 				message: "Internal Server Error!",
 				error: error.message,
