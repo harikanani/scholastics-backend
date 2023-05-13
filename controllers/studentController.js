@@ -203,6 +203,9 @@ module.exports = {
 					teacher_details: teacherDetails,
 					students: students,
 					assignments: assignments,
+					isLectureStarted: classroom.isLectureStarted
+						? classroom.isLectureStarted
+						: false,
 				},
 			});
 		} catch (error) {
@@ -286,6 +289,13 @@ module.exports = {
 			// Get Student Classroom lists
 			let classrooms = await classroomModel.find({
 				students: new mongoose.Types.ObjectId(req.user.student_id),
+			});
+
+			classrooms.map((classroom) => {
+				// check if isLectureStarted is present or nor if not present then add it
+				classroom.isLectureStarted = classroom.isLectureStarted
+					? classroom.isLectureStarted
+					: false;
 			});
 
 			return res.status(200).json({
