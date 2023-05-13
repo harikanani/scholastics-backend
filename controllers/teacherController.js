@@ -9,7 +9,6 @@ const mongoose = require("mongoose");
 const { AccessToken } = require("twilio").jwt;
 const { VideoGrant } = AccessToken;
 const twilio = require("twilio");
-// const { generateVideoCallingToken } = require("../services");
 
 // Set up Twilio credentials
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -30,35 +29,56 @@ module.exports = {
 				});
 			}
 
-			// const appId = process.env.AGORA_APP_ID;
-			// const channel = roomName;
-			// const uid = `${Math.floor(Math.random() * 100000)}`;
-			// const role = "ROLE_PUBLISHER";
+			// Create a new room with Twilio API
+			const room = await twilioClient.video.v1.rooms.create({
+				uniqueName: roomName,
+			});
 
-			// const token = await generateVideoCallingToken(
-			// 	appId,
-			// 	channel,
-			// 	uid,
-			// 	role,
-			// );
+			console.log({ room });
 
-			// res.status(201).json({
-			// 	message: "Token Generated Successfully!",
-			// 	data: token,
-			// });
+			// Save the room ID to the corresponding classroom document in the database
+			const classroom = await classroomModel.find({ subject_code });
 
-			// // Create a new room with Twilio API
-			// const room = await twilioClient.video.rooms.create({
-			// 	uniqueName: roomName,
-			// });
+			console.log(classroomModel);
+			classroom.videoRoomId = room.sid;
+			await classroom.save();
 
-			// // Save the room ID to the corresponding classroom document in the database
-			// const classroom = await classroomModel.find({ subject_code });
-			// classroom.videoRoomId = room.sid;
-			// await classroom.save();
-
-			// res.status(201).json({ roomId: room.sid });
+			res.status(201).json({ roomId: room.sid });
 		} catch (error) {
+			return res.status(500).json({
+				message: "Internal Server Error!",
+				error: error.message,
+			});
+		}
+	},
+
+	handleLecture: async (req, res) => {
+		try {
+			let { subject_code, flag } = req.body;
+
+			if (!subject_code || flag === undefined || flag === null) {
+				return res.status(400).json({
+					message: "Please provide all data: subject_code and flag",
+				});
+			}
+
+			let classroom = await classroomModel.findOne({ subject_code });
+
+			if (!classroom) {
+				return res.status(404).json({
+					message: "Classroom not found",
+				});
+			}
+
+			classroom.isLectureStarted = flag;
+			await classroom.save();
+
+			return res.status(200).json({
+				message: "operation success",
+				data: { classroom },
+			});
+		} catch (error) {
+			console.log(error);
 			return res.status(500).json({
 				message: "Internal Server Error!",
 				error: error.message,

@@ -17,6 +17,13 @@ teacherRouter.post(
 );
 
 teacherRouter.post(
+	"/handleLecture",
+	TokenManager.verifyToken,
+	verify.isTeacher,
+	teacherController.handleLecture,
+);
+
+teacherRouter.post(
 	"/addStudent",
 	TokenManager.verifyToken,
 	verify.isTeacher,

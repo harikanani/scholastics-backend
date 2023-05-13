@@ -21,6 +21,11 @@ const ClassRoomSchema = new Schema(
 			type: String,
 			required: false,
 		},
+		isLectureStarted: {
+			type: Boolean,
+			default: false,
+			required: false,
+		},
 		students: [
 			{
 				type: Schema.Types.ObjectId,
