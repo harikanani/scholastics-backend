@@ -9,6 +9,7 @@ const mongoose = require("mongoose");
 const { AccessToken } = require("twilio").jwt;
 const { VideoGrant } = AccessToken;
 const twilio = require("twilio");
+// const { generateVideoCallingToken } = require("../services");
 
 // Set up Twilio credentials
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -29,17 +30,34 @@ module.exports = {
 				});
 			}
 
-			// Create a new room with Twilio API
-			const room = await twilioClient.video.rooms.create({
-				uniqueName: roomName,
-			});
+			// const appId = process.env.AGORA_APP_ID;
+			// const channel = roomName;
+			// const uid = `${Math.floor(Math.random() * 100000)}`;
+			// const role = "ROLE_PUBLISHER";
 
-			// Save the room ID to the corresponding classroom document in the database
-			const classroom = await classroomModel.find({ subject_code });
-			classroom.videoRoomId = room.sid;
-			await classroom.save();
+			// const token = await generateVideoCallingToken(
+			// 	appId,
+			// 	channel,
+			// 	uid,
+			// 	role,
+			// );
 
-			res.status(201).json({ roomId: room.sid });
+			// res.status(201).json({
+			// 	message: "Token Generated Successfully!",
+			// 	data: token,
+			// });
+
+			// // Create a new room with Twilio API
+			// const room = await twilioClient.video.rooms.create({
+			// 	uniqueName: roomName,
+			// });
+
+			// // Save the room ID to the corresponding classroom document in the database
+			// const classroom = await classroomModel.find({ subject_code });
+			// classroom.videoRoomId = room.sid;
+			// await classroom.save();
+
+			// res.status(201).json({ roomId: room.sid });
 		} catch (error) {
 			return res.status(500).json({
 				message: "Internal Server Error!",

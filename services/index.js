@@ -1,6 +1,7 @@
 const formData = require("form-data");
 const Mailgun = require("mailgun.js");
 const mailgun = new Mailgun(formData);
+// const { RtcTokenBuilder } = require("agora-rtc-sdk");
 
 const API_KEY = process.env.MAILGUN_API_KEY;
 const DOMAIN = "scholastic.abhigoyani.me";
@@ -63,6 +64,34 @@ module.exports = {
 				message: "Internal Server Error!",
 				error: error.message,
 			});
+		}
+	},
+
+	generateVideoCallingToken: (appId, channel, uid, role) => {
+		try {
+			// Create a new RTC Token Builder.
+			const builder = new RtcTokenBuilder();
+
+			// Set the app ID.
+			builder.setAppId(appId);
+
+			// Set the channel name.
+			builder.setChannelName(channel);
+
+			// Set the user ID.
+			builder.setUserId(uid);
+
+			// Set the user role.
+			builder.setUserRole(role);
+
+			// Generate the token.
+			const token = builder.build();
+
+			// Return the token.
+			return token;
+		} catch (error) {
+			console.log(error);
+			return error.message;
 		}
 	},
 };
