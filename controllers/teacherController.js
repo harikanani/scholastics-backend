@@ -251,7 +251,7 @@ module.exports = {
 			const assignment = new AssignmentModel({
 				name,
 				description,
-				classrrom_id: classroomId,
+				classrrom_id: new mongoose.Types.ObjectId(classroom._id),
 				dueDate,
 				fileUrl,
 				marks,
